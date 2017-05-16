@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <ul style="list-style-type: none;" id="discussion"></ul>
+                    <div class="alert alert-warning" role="alert" id="chatEmpty">Sem mensagens!</div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <div class="row">
+                <div class="col-md-2">
+                    <input type="text" class="form-control" id="displayname" placeholder="Nome" />
+                </div>
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Mensagem" id="message">
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" id="sendmessage">
+                                <span class="glyphicon glyphicon-send" aria-hidden="true"></span>&nbsp;&nbsp;Enviar
+                            </button>
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script type="text/javascript">
+        (function () {
+            var hub = $.connection.chatHub;
+            var showMsg = function () {
+                if ($('ul#discussion li').length == 0) {
+                    $("#chatEmpty").show();
+                } else {
+                    $("#chatEmpty").hide();
+                }
+            };
+
+            hub.client.broadcastMessage = function (name, message) {
+                var encodedName = $('<div />').text(name).html();
+                var encodedMsg = $('<div />').text(message).html();
+                if (encodedName !== null && encodedName !== '') {
+                    $('#discussion').append('<li><b>' + encodedName + '</b>: ' + encodedMsg + '</li>');
+                }
+                else {
+                    $('#discussion').append('<li>' + encodedMsg + '</li>');
+                }
+
+                showMsg();
+            };
+
+            $('#message').focus();
+
+            $.connection.hub.start().done(function () {
+                $('#sendmessage').click(function () {
+                    hub.server.send($('#displayname').val(), $('#message').val());
+                    $('#message').val('').focus();
+                });
+            });
+
+            showMsg();
+        })();
+    </script>
+}
+
+
